@@ -13,7 +13,7 @@ Before running `kernelbench_env.py`, you need to install KernelBench:
    cd -
    ```
 
-2. Set variables at the top of the script:
+2. Set environment variables:
    - `KERNELBENCH_LEVEL`: The difficulty level (1-3)
    - `KERNELBENCH_PROBLEM_NUMBER`: The specific problem number to solve
    - `KERNELBENCH_DIR`: The absolute path to your KernelBench install
