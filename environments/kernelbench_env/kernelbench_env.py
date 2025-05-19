@@ -41,9 +41,9 @@ from atroposlib.utils.tokenize_for_trainer import tokenize_for_trainer
 # Set the start method to 'spawn' for CUDA compatibility
 mp.set_start_method("spawn", force=True)
 
-KERNELBENCH_DIR = os.environ["KERNELBENCH_DIR"]
-KERNELBENCH_LEVEL = os.environ["KERNELBENCH_LEVEL"]
-KERNELBENCH_PROBLEM_NUMBER = os.environ["KERNELBENCH_PROBLEM_NUMBER"]
+KERNELBENCH_DIR:str = os.environ["KERNELBENCH_DIR"]
+KERNELBENCH_LEVEL:int = int(os.environ["KERNELBENCH_LEVEL"])
+KERNELBENCH_PROBLEM_NUMBER:int = int(os.environ["KERNELBENCH_PROBLEM_NUMBER"])
 
 os.environ["TORCH_CUDA_ARCH_LIST"] = "9.0"
 
@@ -81,6 +81,8 @@ def evaluate_single_kernel(args):
 
     torch.cuda.init()
 
+    print("Generated code")
+    print(generated_src)
     eval_result = eval_kernel_against_ref(
         original_model_src=ref_code,
         custom_model_src=generated_src,
@@ -94,6 +96,8 @@ def evaluate_single_kernel(args):
 
     compiled_flag = bool(getattr(eval_result, "compiled", False))
     runtime_val = float(getattr(eval_result, "runtime", -1.0))
+    print("compile_flag", compiled_flag)
+    print("runtime_val", runtime_val)
     reward = 0.3 * (1 if compiled_flag else 0) + runtime_val
 
     # Note: We can't use the tokenizer here since it's not pickleable
@@ -112,7 +116,8 @@ class KernelBenchEnv(BaseEnv):
     @classmethod
     def config_init(cls) -> Tuple[BaseEnvConfig, List[APIServerConfig]]:
         env_cfg = BaseEnvConfig(
-            tokenizer_name="Qwen/Qwen3-4B",
+            tokenizer_name="Qwen/Qwen2.5-1.5B-Instruct",
+            # tokenizer_name="Qwen/Qwen3-4B",
             group_size=2,
             max_token_length=2048,
             batch_size=1,
@@ -125,7 +130,8 @@ class KernelBenchEnv(BaseEnv):
 
         server_cfgs = [
             APIServerConfig(
-                model_name="Qwen/Qwen3-4B",
+                model_name="Qwen/Qwen2.5-1.5B-Instruct",
+                # model_name="Qwen/Qwen3-4B",
                 base_url="http://localhost:9001/v1",
                 api_key="DUMMY_KB_KEY",
                 num_requests_for_eval=64,
@@ -179,6 +185,7 @@ class KernelBenchEnv(BaseEnv):
         to_backlog: list() = []
         for i, choice in enumerate(chat_completions.choices):
             kernel_code = choice.message.content
+            print("kernel_code", kernel_code)
             sample_path = run_dir / f"sample_{i}.cu"
             sample_path.write_text(kernel_code, encoding="utf‑8")
 

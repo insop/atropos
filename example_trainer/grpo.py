@@ -352,6 +352,7 @@ def train(config: TrainingConfig):
             # Forward pass
             # User specified that tokens/labels are already prepared by get_data
             outputs = model(tokens)  # Assuming model just needs tokens
+            print(outputs)
             logits = outputs.logits  # Assuming this is the structure
 
             # Calculate GRPO loss (reverting to user's previous logic)
